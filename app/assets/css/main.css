@@ -1,0 +1,86 @@
+@import '@fontsource/onest/400.css';
+@import '@fontsource/onest/500.css';
+@import '@fontsource/onest/600.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply bg-canvas text-ink antialiased;
+    color-scheme: light;
+  }
+
+  body {
+    @apply min-h-screen bg-canvas font-sans text-base leading-relaxed text-ink;
+  }
+
+  :focus-visible {
+    @apply outline outline-2 outline-offset-2 outline-accent;
+  }
+
+  ::selection {
+    @apply bg-accent-line text-ink;
+  }
+}
+
+@layer components {
+  /* Quiet sentence-case label. No caps, no letter-spacing, no mono. */
+  .kicker {
+    @apply inline-flex items-center gap-2 text-[13px] font-medium text-ink-soft;
+  }
+
+  .card {
+    @apply rounded-[1.25rem] border border-line bg-surface shadow-xs;
+  }
+
+  /* Frosted panel that sits on top of the aurora wash. */
+  .glass {
+    @apply border border-white/80 bg-white/60 shadow-card backdrop-blur-xl;
+  }
+
+  /* Pastel wash. Place inside a `relative overflow-hidden` parent. */
+  .aurora {
+    @apply pointer-events-none absolute inset-0 bg-aurora blur-2xl;
+  }
+
+  /* Small pill used for section labels ("Technology", "Governance"). */
+  .badge {
+    @apply inline-flex h-7 items-center gap-1.5 rounded-full border border-line-strong bg-surface px-3 text-xs font-medium text-ink-soft shadow-xs;
+  }
+
+  /* Shared form-control look (inputs, textareas, custom select trigger). */
+  .field {
+    /* Hairline 0.5px border, no shadow. Focus only changes the border colour. */
+    @apply h-10 w-full rounded-[0.7rem] border-[0.5px] border-line-hover bg-surface px-3 text-base text-ink outline-none transition-colors duration-150 placeholder:text-ink-faint hover:border-ink-faint sm:text-sm;
+    @apply focus:border-accent focus:outline-none focus-visible:outline-none aria-expanded:border-accent;
+  }
+
+  .field.invalid {
+    @apply border-danger focus:border-danger;
+  }
+
+  textarea.field {
+    @apply h-auto py-2.5 leading-6;
+  }
+
+  .chip {
+    @apply inline-flex h-7 items-center gap-1.5 rounded-full border border-line bg-sunken px-3 text-xs font-medium text-ink-soft;
+  }
+
+  .caret {
+    @apply ml-0.5 inline-block h-[0.95em] w-0.5 animate-caret bg-accent align-[-0.12em];
+  }
+}
+
+/* Plain CSS needed: global reduced-motion override across all elements. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
