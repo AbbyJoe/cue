@@ -401,12 +401,7 @@ onMounted(async () => {
       cv: workspace?.cvText || profile.cvText,
       workspaceId: workspace?.id,
     }
-    initials.value = (workspace?.name || profile.targetRole || '')
-      .split(/\s+/)
-      .filter(Boolean)
-      .slice(0, 2)
-      .map((word: string) => word[0]?.toUpperCase() ?? '')
-      .join('')
+    initials.value = `${profile.firstName.trim().charAt(0)}${profile.lastName.trim().charAt(0)}`.toUpperCase()
   } catch {
     // The interview can start without the profile initials.
   }
