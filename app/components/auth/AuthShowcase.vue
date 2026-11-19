@@ -6,7 +6,7 @@
       <div>
         <h2 class="mt-[0.85rem] text-[2rem] font-semibold leading-[1.12] tracking-[-0.035em] xl:text-[2.35rem]">
           Rehearse the
-          <span class="block min-h-[1.15em] whitespace-nowrap text-accent [font-variant-ligatures:none]">{{ word }}</span>
+          <span class="block min-h-[1.15em] whitespace-nowrap text-accent [font-variant-ligatures:none]">hard questions</span>
           <span class="block text-ink-soft">Walk in ready.</span>
         </h2>
       </div>

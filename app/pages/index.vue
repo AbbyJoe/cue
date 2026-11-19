@@ -23,8 +23,8 @@
         </p>
 
         <h1 class="mt-6 animate-rise text-[clamp(2.6rem,6.2vw,4.75rem)] font-semibold leading-[1.02] tracking-[-0.045em] [animation-delay:60ms]">
-          Rehearse the
-          <span class="block min-h-[1.05em] whitespace-nowrap text-accent [font-variant-ligatures:none]" aria-live="polite">{{ word }}</span>
+          Practise the
+          <span class="block min-h-[1.05em] whitespace-nowrap text-accent [font-variant-ligatures:none]">interview</span>
           before it counts.
         </h1>
 

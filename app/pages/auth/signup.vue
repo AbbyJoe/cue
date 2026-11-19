@@ -27,7 +27,7 @@
   <form v-else class="space-y-5" novalidate @submit.prevent="submit">
     <header class="mb-8 text-center">
       <h1 class="text-[1.75rem] font-semibold leading-9 tracking-tight">Create your account</h1>
-      <p class="mt-2 text-sm text-ink-soft">Just the basics to begin. You can add a CV later in Settings.</p>
+      <p class="mt-2 text-sm text-ink-soft">Enter your details to get started.</p>
     </header>
 
     <SocialAuth intent="signup" />
