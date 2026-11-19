@@ -52,6 +52,7 @@ export const durations: SelectOption[] = [
   { label: '10 minutes', value: '10' },
   { label: '15 minutes', value: '15' },
   { label: '20 minutes', value: '20' },
+  { label: '30 minutes', value: '30' },
 ]
 
 export const styles: SelectOption[] = [
@@ -81,6 +82,10 @@ const groups = {
 
 export function labelFor(group: keyof typeof groups, value: string) {
   return groups[group].find((option) => option.value === value)?.label ?? value
+}
+
+export function valueFor(group: keyof typeof groups, label: string) {
+  return groups[group].find((option) => option.label === label)?.value
 }
 
 export function readSetup(query: Record<string, unknown>): InterviewSetup {

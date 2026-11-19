@@ -11,9 +11,14 @@
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
+    "@elevenlabs/client": "^1.37.1",
     "@fontsource/onest": "^5.3.1",
+    "@supabase/ssr": "0.12.7",
+    "@supabase/supabase-js": "2.119.0",
     "axios": "^1.21.1",
+    "mammoth": "^1.13.0",
     "nuxt": "3",
+    "unpdf": "^2.2.1",
     "vue-iconsax": "^2.0.0"
   },
   "devDependencies": {

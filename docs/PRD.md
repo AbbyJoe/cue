@@ -140,6 +140,7 @@ Required capabilities:
 
 - Registration and authentication.
 - First and last name, collected at sign-up.
+- Social sign-in with Google. LinkedIn is planned for a later release.
 - Professional specialisation.
 - Current experience level.
 - Target role.
@@ -161,13 +162,33 @@ The sign-up form asks for:
 - Email address.
 - Password and confirmation.
 
+Candidates can also sign up or log in with **Google**. **LinkedIn** is planned for a later release. Its button is shown disabled with a "Coming soon" label, and the rules below apply to it when it is turned on. No other social providers are planned.
+
+- Both appear above the email form on the login and sign-up pages, with the same buttons on each.
+- The first social sign-in creates the account. Later sign-ins log the candidate in.
+- First and last name come from the provider (`given_name` and `family_name`) and can be edited in Settings. If the provider doesn't return a name, ask for it before the dashboard.
+- If an email address is already registered with a password, link the social identity to that account rather than creating a duplicate.
+- If the provider fails or the candidate cancels, return them to the page they came from with a short message, and leave the email form available.
+- Use Supabase Auth providers `google` and `linkedin_oidc` (LinkedIn's OpenID Connect sign-in). After the redirect, `/auth/callback` finishes the session and copies the name into the profile.
+- Sessions are stored in cookies (`@supabase/ssr`) so server-rendered pages can check access. `/dashboard` and `/interview` require a session. RLS still enforces data access.
+- Google is asked to show its account chooser, so people who use more than one account can pick the right one.
+- Log out ends the session on the current device only.
+
+Email sign-up:
+
+- Names are sent with the sign-up request and stored in `public.profiles` by a database trigger. The same trigger fills names for Google and LinkedIn accounts.
+- With email confirmation on, the candidate sees "Check your inbox", with a resend option limited to once a minute. The link signs them in and opens the dashboard.
+- If an email is already registered, sign-up says so and links to log in.
+- Login gives separate, plain-language messages for a wrong email or password and for an unconfirmed email. An unconfirmed account can resend the link from the login page.
+- Weak passwords rejected by Supabase are reported next to the password field.
+
 Names accept letters from any language, spaces, hyphens and apostrophes, up to 50 characters each. The first name is used to address the candidate in the dashboard and in interview reports. Role, level and a CV are not requested at sign-up.
 
 ### Settings
 
 Candidates manage their details from a single Settings page with three sections:
 
-1. **Personal details:** first and last name. Both are required and can be edited at any time.
+1. **Personal details:** first and last name, stored in `public.profiles`. Both are required and can be edited at any time.
 2. **Preparation profile:** specialisation, experience level, target role and preparation goals.
 3. **CV:** an optional upload area for the candidate's CV.
 
@@ -181,6 +202,7 @@ Candidates manage their details from a single Settings page with three sections:
 - After upload, the CV is shown with its name, size and upload date, with options to replace or remove it.
 - The CV is private to the candidate and is never shared with employers.
 - The uploaded CV feeds the CV analysis described in section 3.3.
+- Storage: CVs are kept in a private Supabase Storage bucket at `cvs/<user id>/cv.<ext>`. The app only ever shows them through signed links that expire after an hour.
 
 ## 3.2 Interview setup and personalisation
 
@@ -577,7 +599,7 @@ A user should also be able to practise without creating a company-specific works
 
 ## 4.1 First-time user
 
-1. Creates an account with their first name, last name, email and password.
+1. Creates an account with Google, or their first name, last name, email and password.
 2. Selects a professional specialisation.
 3. Selects experience level.
 4. Identifies target role.
@@ -1002,7 +1024,7 @@ Suggested entities:
 
 | Entity | Purpose |
 | --- | --- |
-| Profiles | Candidate first and last name, profile and professional preferences |
+| Profiles | Candidate first and last name (implemented, see DATABASE.md), profile and professional preferences |
 | CandidateSkills | Skills and proficiency information |
 | Documents | Uploaded CVs and document metadata (file name, size, type, storage path, upload date) |
 | JobDescriptions | Submitted job opportunity information |
@@ -1084,7 +1106,7 @@ Important backend operations:
 
 **Update profile**
 
-`PATCH /api/v1/profiles` updates first name, last name and preparation preferences. Apply the same name rules as sign-up.
+`GET /api/v1/profiles` returns the candidate's name. `PATCH /api/v1/profiles` updates first and last name (implemented), and later the preparation preferences. Both apply the same name rules as sign-up, and run as the signed-in user so RLS applies.
 
 **Create preparation plan**
 
@@ -1374,7 +1396,7 @@ This gives us an early indication of whether the platform is actually improving 
 
 The MVP is ready for initial release when:
 
-1. A candidate can create an account with their first and last name and complete their professional profile.
+1. A candidate can create an account with their first and last name, or with Google, and complete their professional profile.
 2. A candidate can select a technology role and experience level.
 3. A candidate can configure an interview category, duration and difficulty.
 4. A candidate can practise without uploading a CV or job description.

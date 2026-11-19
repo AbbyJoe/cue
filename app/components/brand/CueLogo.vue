@@ -12,7 +12,7 @@
     <!-- The "C": an open voice ring, open toward where the voice travels -->
     <path
       d="M31.82 10.77A15 15 0 1 0 31.82 29.23"
-      class="stroke-accent"
+      :class="onDark ? 'stroke-[#6E9BFF]' : 'stroke-accent'"
       stroke-width="3.2"
       stroke-linecap="round"
     />
@@ -24,7 +24,7 @@
     </g>
     <!-- AI spark at the mouth of the ring -->
     <path
-      :class="[bar, 'fill-accent-strong', animated && 'animate-spark']"
+      :class="[bar, onDark ? 'fill-accent-line' : 'fill-accent-strong', animated && 'animate-spark']"
       d="M35 15.5c.45 2.75 1.25 3.55 4 4-2.75.45-3.55 1.25-4 4-.45-2.75-1.25-3.55-4-4 2.75-.45 3.55-1.25 4-4Z"
     />
   </svg>
@@ -34,9 +34,12 @@
 withDefaults(defineProps<{
   size?: number
   animated?: boolean
+  /** Lighter blues for use on charcoal (e.g. inside primary buttons). */
+  onDark?: boolean
 }>(), {
   size: 28,
   animated: false,
+  onDark: false,
 })
 
 // SVG children need fill-box so they scale around their own centre.

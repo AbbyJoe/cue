@@ -2,7 +2,7 @@
   <section class="mx-auto max-w-6xl">
     <PageHeader
       title="Set up the room"
-      description="You can start without a CV or a job description. Those can make a later session more specific."
+      :description="active ? `This session is saved in ${active.name}. Its goals and job description shape the questions.` : 'You can start right away. Open a workspace when you are preparing for one role.'"
     />
 
     <div class="mt-8 grid gap-4 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
@@ -48,7 +48,6 @@ import {
   setupQuery,
   styles,
 } from '~/utils/interview'
-import { readProfile } from '~/utils/profile'
 
 definePageMeta({ layout: 'app' })
 useHead({ title: 'Practise' })
@@ -64,13 +63,27 @@ const summary = computed(() => [
   { label: 'Interviewer', value: labelFor('style', setup.style) },
 ])
 
-onMounted(() => {
-  const profile = readProfile()
-  if (roles.some((option) => option.value === profile.specialisation)) {
-    setup.role = profile.specialisation
+const { load: loadProfile } = useProfile()
+const { active, load: loadWorkspaces } = useWorkspaces()
+
+function applySetup(role: string, level: string) {
+  if (roles.some((option) => option.value === role)) {
+    setup.role = role
   }
-  if (levels.some((option) => option.value === profile.level)) {
-    setup.level = profile.level
+  if (levels.some((option) => option.value === level)) {
+    setup.level = level
+  }
+}
+
+onMounted(async () => {
+  const profile = await loadProfile()
+  await loadWorkspaces().catch(() => {})
+  applySetup(active.value?.role || profile.specialisation, active.value?.level || profile.level)
+})
+
+watch(active, (workspace) => {
+  if (workspace) {
+    applySetup(workspace.role, workspace.level)
   }
 })
 

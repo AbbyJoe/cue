@@ -12,7 +12,18 @@
         </button>
       </div>
 
-      <nav class="mt-9 flex flex-1 flex-col gap-6" aria-label="Workspace">
+      <nav class="mt-6 flex flex-1 flex-col gap-6" aria-label="Workspace">
+        <NuxtLink
+          to="/dashboard/workspaces"
+          class="flex items-center gap-3 rounded-2xl border border-line bg-surface px-3 py-2.5 shadow-xs transition-colors duration-150 hover:border-line-strong"
+          @click="close"
+        >
+          <Icon name="FolderOpen" :size="18" class="text-accent" />
+          <span class="min-w-0 flex-1">
+            <span class="block text-[11px] text-ink-faint">Workspace</span>
+            <span class="block truncate text-sm font-medium text-ink">{{ active?.name ?? 'General practice' }}</span>
+          </span>
+        </NuxtLink>
         <div v-for="group in groups" :key="group.label" class="flex flex-col gap-0.5">
           <p class="mb-1 px-3 text-[13px] text-ink-faint">{{ group.label }}</p>
           <NuxtLink
@@ -52,12 +63,12 @@
 
 <script setup lang="ts">
 import { labelFor } from '~/utils/interview'
-import { emptyProfile, fullName, profileEvent, readProfile } from '~/utils/profile'
 
 const open = defineModel<boolean>('open', { default: false })
 const route = useRoute()
 const { logout, loggingOut } = useAuth()
-const profile = ref({ ...emptyProfile })
+const { profile, fullName: name, load: loadProfile } = useProfile()
+const { active, load: loadWorkspaces } = useWorkspaces()
 
 const groups = [
   {
@@ -77,9 +88,8 @@ const groups = [
   },
 ]
 
-const roleLabel = computed(() => profile.value.targetRole || labelFor('role', profile.value.specialisation))
-const levelLabel = computed(() => labelFor('level', profile.value.level))
-const name = computed(() => fullName(profile.value))
+const roleLabel = computed(() => profile.value?.targetRole || labelFor('role', profile.value?.specialisation ?? 'frontend'))
+const levelLabel = computed(() => labelFor('level', profile.value?.level ?? 'senior'))
 const displayName = computed(() => name.value || roleLabel.value)
 const subtitle = computed(() => (name.value ? `${roleLabel.value} · ${levelLabel.value}` : levelLabel.value))
 const initials = computed(() => displayName.value
@@ -99,21 +109,12 @@ function close() {
   open.value = false
 }
 
-function refreshProfile() {
-  profile.value = readProfile()
-}
-
 onMounted(() => {
-  profile.value = readProfile()
-  window.addEventListener(profileEvent, refreshProfile)
-})
-
-onBeforeUnmount(() => {
-  window.removeEventListener(profileEvent, refreshProfile)
+  loadProfile()
+  loadWorkspaces().catch(() => {})
 })
 
 watch(() => route.path, () => {
   close()
-  profile.value = readProfile()
 })
 </script>

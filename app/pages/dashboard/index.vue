@@ -114,22 +114,22 @@
         <header class="flex items-center justify-between gap-4 px-5 py-[1.1rem]">
           <div>
             <h2 class="text-base font-semibold">How you are evaluated</h2>
-            <p class="mt-0.5 text-[13px] text-ink-soft">Scores appear after your first interview.</p>
+            <p class="mt-0.5 text-[13px] text-ink-soft">{{ rubricNote }}</p>
           </div>
           <span class="chip">
             <Icon name="Chart2" :size="14" />
-            0 sessions
+            {{ sessionLabel }}
           </span>
         </header>
         <ul class="space-y-4 border-t border-line px-5 py-5">
           <li v-for="dimension in rubric" :key="dimension.name">
             <div class="flex items-baseline justify-between gap-3">
               <span class="text-[13px] font-medium text-ink">{{ dimension.name }}</span>
-              <span class="text-xs tabular-nums text-ink-faint">–/5</span>
+              <span class="text-xs tabular-nums" :class="scoreLabel(dimension.name) === '0/5' ? 'text-ink-faint' : 'text-ink'">{{ scoreLabel(dimension.name) }}</span>
             </div>
             <p class="mt-0.5 text-xs text-ink-faint">{{ dimension.question }}</p>
             <div class="mt-2 grid grid-cols-5 gap-[3px]">
-              <span v-for="step in 5" :key="step" class="h-1 rounded-full bg-panel" />
+              <span v-for="step in 5" :key="step" class="h-1 rounded-full" :class="step <= scoreFill(dimension.name) ? 'bg-accent' : 'bg-panel'" />
             </div>
           </li>
         </ul>
@@ -140,14 +140,16 @@
 
 <script setup lang="ts">
 import { lessons as allLessons } from '~/data/lessons'
+import { averageScore, rubric } from '~/utils/coaching'
 import { defaultSetup, labelFor, levels, roles, setupQuery } from '~/utils/interview'
 import type { InterviewSetup } from '~/utils/interview'
-import { readProfile } from '~/utils/profile'
 
 definePageMeta({ layout: 'app' })
 useHead({ title: 'Overview' })
 
 const setup = reactive<InterviewSetup>({ ...defaultSetup })
+const { load: loadProfile } = useProfile()
+const { active, load: loadWorkspaces } = useWorkspaces()
 const targetRole = ref('')
 const greeting = ref('Welcome back')
 const today = ref('Overview')
@@ -171,13 +173,22 @@ const modes = [
   { value: 'leadership', title: 'Leadership', icon: 'Lamp', tint: 'bg-aura-sun', focus: 'Influence', description: 'Mentoring, direction and raising the quality of other people’s work.' },
 ]
 
-const rubric = [
-  { name: 'Relevance', question: 'Did you answer the question that was asked?' },
-  { name: 'Structure', question: 'Was the response organised logically?' },
-  { name: 'Depth', question: 'Did you show enough understanding for your level?' },
-  { name: 'Clarity', question: 'Was the explanation easy to follow?' },
-  { name: 'Evidence', question: 'Did you support it with real examples?' },
-]
+const { interviews, load: loadInterviews } = useInterviews()
+const sessionLabel = computed(() => {
+  const count = interviews.value.length
+  return count === 1 ? '1 session' : `${count} sessions`
+})
+const rubricNote = computed(() => interviews.value.length ? 'Averages from your completed interviews.' : 'Scores appear after your first interview.')
+
+function scoreLabel(name: string) {
+  const value = averageScore(interviews.value, name)
+  return value == null ? '0/5' : `${value.toFixed(1)}/5`
+}
+
+function scoreFill(name: string) {
+  const value = averageScore(interviews.value, name)
+  return value == null ? 0 : Math.round(value)
+}
 
 const questions = [
   'Walk me through a performance problem you solved recently.',
@@ -204,22 +215,28 @@ function setOrbSize() {
 }
 
 onMounted(() => {
-  const profile = readProfile()
-  if (roles.some((option) => option.value === profile.specialisation)) {
-    setup.role = profile.specialisation
-  }
-  if (levels.some((option) => option.value === profile.level)) {
-    setup.level = profile.level
-  }
-  targetRole.value = profile.targetRole
-
-  const now = new Date()
-  const hour = now.getHours()
+  const hour = new Date().getHours()
   const salutation = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening'
-  greeting.value = profile.firstName ? `${salutation}, ${profile.firstName}` : salutation
+  greeting.value = salutation
+
+  Promise.all([loadProfile(), loadWorkspaces().catch(() => {})]).then(([profile]) => {
+    const workspace = active.value
+    const role = workspace?.role || profile.specialisation
+    const level = workspace?.level || profile.level
+    if (roles.some((option) => option.value === role)) {
+      setup.role = role
+    }
+    if (levels.some((option) => option.value === level)) {
+      setup.level = level
+    }
+    targetRole.value = workspace?.name || profile.targetRole
+    greeting.value = profile.firstName ? `${salutation}, ${profile.firstName}` : salutation
+  })
 
   setOrbSize()
   window.addEventListener('resize', setOrbSize)
+
+  loadInterviews()
 
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     typed.value = questions[0]

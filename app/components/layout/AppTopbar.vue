@@ -66,7 +66,6 @@
 
 <script setup lang="ts">
 import { labelFor } from '~/utils/interview'
-import { emptyProfile, fullName, profileEvent, readProfile } from '~/utils/profile'
 
 const emit = defineEmits<{ menu: [] }>()
 const route = useRoute()
@@ -74,7 +73,7 @@ const { logout, loggingOut } = useAuth()
 
 const menuOpen = ref(false)
 const menuRoot = ref<HTMLElement | null>(null)
-const profile = ref({ ...emptyProfile })
+const { profile, fullName: name, load: loadProfile } = useProfile()
 
 const names: Record<string, string> = {
   '/dashboard/practise': 'Practise',
@@ -89,9 +88,8 @@ const section = computed(() => {
   return match ? names[match] : 'Overview'
 })
 
-const roleLabel = computed(() => profile.value.targetRole || labelFor('role', profile.value.specialisation))
-const levelLabel = computed(() => labelFor('level', profile.value.level))
-const name = computed(() => fullName(profile.value))
+const roleLabel = computed(() => profile.value?.targetRole || labelFor('role', profile.value?.specialisation ?? 'frontend'))
+const levelLabel = computed(() => labelFor('level', profile.value?.level ?? 'senior'))
 const displayName = computed(() => name.value || roleLabel.value)
 const subtitle = computed(() => (name.value ? `${roleLabel.value} · ${levelLabel.value}` : levelLabel.value))
 const initials = computed(() => displayName.value
@@ -106,23 +104,16 @@ function onOutside(event: PointerEvent) {
   }
 }
 
-function refreshProfile() {
-  profile.value = readProfile()
-}
-
 onMounted(() => {
-  profile.value = readProfile()
-  window.addEventListener(profileEvent, refreshProfile)
+  loadProfile()
   document.addEventListener('pointerdown', onOutside)
 })
 
 onBeforeUnmount(() => {
-  window.removeEventListener(profileEvent, refreshProfile)
   document.removeEventListener('pointerdown', onOutside)
 })
 
 watch(() => route.path, () => {
   menuOpen.value = false
-  profile.value = readProfile()
 })
 </script>

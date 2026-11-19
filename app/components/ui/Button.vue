@@ -2,7 +2,9 @@
   <NuxtLink v-if="to" :to="to" :class="classes">
     <slot />
   </NuxtLink>
-  <button v-else :type="type" :disabled="disabled" :class="classes">
+  <button v-else :type="type" :disabled="disabled || loading" :aria-busy="loading" :class="classes">
+    <!-- Loading: the animated Cue logo stands in as the spinner -->
+    <CueLogo v-if="loading" :size="logoSize[size]" :on-dark="variant === 'primary'" animated aria-hidden="true" />
     <slot />
   </button>
 </template>
@@ -14,16 +16,20 @@ const props = withDefaults(defineProps<{
   type?: 'button' | 'submit'
   to?: string | Record<string, unknown>
   disabled?: boolean
+  loading?: boolean
   block?: boolean
 }>(), {
   variant: 'primary',
   size: 'md',
   type: 'button',
   disabled: false,
+  loading: false,
   block: false,
 })
 
 // Pill controls: charcoal primary with a soft top highlight, white secondary.
+const logoSize = { sm: 18, md: 20, lg: 22 }
+
 const classes = computed(() => {
   const variants = {
     primary: 'border border-accent-solid bg-accent-solid text-white shadow-button hover:border-accent-hover hover:bg-accent-hover',
@@ -38,7 +44,7 @@ const classes = computed(() => {
   }
 
   return [
-    'inline-flex select-none items-center justify-center whitespace-nowrap rounded-full font-medium transition-[color,background-color,border-color,box-shadow,transform] active:scale-[0.98] duration-150 disabled:cursor-not-allowed disabled:opacity-50',
+    'inline-flex select-none items-center justify-center whitespace-nowrap rounded-full font-medium transition-[color,background-color,border-color,box-shadow,transform] active:scale-[0.98] duration-150 disabled:cursor-not-allowed disabled:opacity-50 aria-busy:cursor-wait aria-busy:opacity-90',
     variants[props.variant],
     sizes[props.size],
     props.block ? 'w-full' : '',

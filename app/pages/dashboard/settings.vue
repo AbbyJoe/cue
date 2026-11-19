@@ -2,7 +2,7 @@
   <section class="mx-auto max-w-5xl">
     <PageHeader
       title="Settings"
-      description="Your details and the context used to shape practice sessions. Everything stays on this device for now."
+      description="Your details and the context used to shape practice sessions."
     />
 
     <form class="mt-10 divide-y divide-line" novalidate @submit.prevent="save">
@@ -15,7 +15,7 @@
         <div class="card grid gap-5 p-6 sm:grid-cols-2">
           <Field
             id="first-name"
-            v-model="profile.firstName"
+            v-model="form.firstName"
             label="First name"
             placeholder="Ada"
             autocomplete="given-name"
@@ -23,7 +23,7 @@
           />
           <Field
             id="last-name"
-            v-model="profile.lastName"
+            v-model="form.lastName"
             label="Last name"
             placeholder="Okafor"
             autocomplete="family-name"
@@ -40,12 +40,12 @@
         </div>
         <div>
           <div class="card grid gap-5 p-6 sm:grid-cols-2">
-            <Select id="specialisation" v-model="profile.specialisation" label="Specialisation" :options="roles" />
-            <Select id="level" v-model="profile.level" label="Experience level" :options="levels" />
+            <Select id="specialisation" v-model="form.specialisation" label="Specialisation" :options="roles" />
+            <Select id="level" v-model="form.level" label="Experience level" :options="levels" />
             <div class="sm:col-span-2">
               <Field
                 id="target-role"
-                v-model="profile.targetRole"
+                v-model="form.targetRole"
                 label="Target role"
                 placeholder="Senior Frontend Engineer"
                 autocomplete="organization-title"
@@ -55,20 +55,26 @@
               <label for="goals" class="mb-1.5 block text-[13px] font-medium text-ink">Preparation goals</label>
               <textarea
                 id="goals"
-                v-model="profile.goals"
+                v-model="form.goals"
                 rows="4"
                 placeholder="Explain technical trade-offs more clearly."
                 class="field"
               />
             </div>
+            <div class="sm:col-span-2">
+              <label for="job-description" class="mb-1.5 block text-[13px] font-medium text-ink">Job description</label>
+              <textarea
+                id="job-description"
+                v-model="form.jobDescription"
+                rows="5"
+                maxlength="4000"
+                placeholder="Paste the role you are preparing for. The interviewer will use it to choose questions."
+                class="field"
+              />
+            </div>
           </div>
           <div class="mt-5 flex flex-wrap items-center gap-4">
-            <Button type="submit">Save changes</Button>
-            <p v-if="status === 'saved'" class="flex items-center gap-1.5 text-sm text-ink-soft" role="status">
-              <Icon name="TickCircle" :size="16" class="text-accent" />
-              Saved on this device
-            </p>
-            <p v-else-if="status === 'invalid'" class="text-sm text-danger" role="status">Check the highlighted fields.</p>
+            <Button type="submit" :loading="saving">{{ saving ? 'Saving…' : 'Save changes' }}</Button>
           </div>
         </div>
       </div>
@@ -77,10 +83,17 @@
       <div :class="row">
         <div>
           <h2 class="text-base font-semibold">CV</h2>
-          <p class="mt-1 text-sm text-ink-soft">Optional. Lets the interviewer ask about your real projects and experience.</p>
+          <p class="mt-1 text-sm text-ink-soft">Optional, and only visible to you. Practice works without one.</p>
         </div>
         <div class="card p-6">
-          <FileUpload id="cv" v-model="profile.cv" label="Your CV" @update:model-value="saveCv" />
+          <FileUpload
+            id="cv"
+            label="Your CV"
+            :file="profile?.cv ?? null"
+            :busy="cvBusy"
+            @select="onCvSelect"
+            @remove="onCvRemove"
+          />
           <ul class="mt-5 grid gap-2.5 text-[13px] text-ink-soft">
             <li v-for="note in cvNotes" :key="note.text" class="flex gap-2.5">
               <Icon :name="note.icon" :size="16" class="mt-px flex-none text-ink-faint" />
@@ -95,8 +108,6 @@
 
 <script setup lang="ts">
 import { levels, roles } from '~/utils/interview'
-import type { CvFile } from '~/utils/profile'
-import { emptyProfile, readProfile, saveProfile, updateProfile } from '~/utils/profile'
 import { nameError } from '~/utils/validation'
 
 definePageMeta({ layout: 'app' })
@@ -104,49 +115,78 @@ useHead({ title: 'Settings' })
 
 const row = 'grid gap-5 py-8 first:pt-0 lg:grid-cols-[16rem_minmax(0,1fr)] lg:gap-10'
 
-const profile = reactive({ ...emptyProfile })
+const { profile, load, save: saveProfile, uploadCv, removeCv } = useProfile()
+const toast = useToast()
+
+// Editable copy of the profile. Filled once it has loaded.
+const form = reactive({ firstName: '', lastName: '', specialisation: 'frontend', level: 'senior', targetRole: '', goals: '', jobDescription: '' })
 const errors = reactive({ firstName: '', lastName: '' })
-const status = ref<'idle' | 'saved' | 'invalid'>('idle')
+const saving = ref(false)
+const cvBusy = ref(false)
 
 const cvNotes = [
-  { icon: 'Lock', text: 'Only you can see your CV. It is never shared with employers.' },
-  { icon: 'MagicStar', text: 'Analysis starts once accounts are connected. For now only the file details are kept.' },
+  { icon: 'Lock', text: 'Only you can see your CV. It is stored privately and never shared with employers.' },
+  { icon: 'Refresh2', text: 'Uploading a new file replaces the current one.' },
   { icon: 'Trash', text: 'Remove it at any time. Practice works without one.' },
 ]
 
-onMounted(() => {
-  Object.assign(profile, readProfile())
+onMounted(async () => {
+  const p = await load()
+  Object.assign(form, {
+    firstName: p.firstName,
+    lastName: p.lastName,
+    specialisation: p.specialisation,
+    level: p.level,
+    targetRole: p.targetRole,
+    goals: p.goals,
+    jobDescription: p.jobDescription,
+  })
 })
 
-// Any edit clears the last save message.
-watch(
-  () => [profile.firstName, profile.lastName, profile.specialisation, profile.level, profile.targetRole, profile.goals],
-  () => {
-    if (status.value === 'saved') {
-      status.value = 'idle'
-    }
-  },
-)
-
-function save() {
-  errors.firstName = nameError(profile.firstName, 'first')
-  errors.lastName = nameError(profile.lastName, 'last')
+async function save() {
+  errors.firstName = nameError(form.firstName, 'first')
+  errors.lastName = nameError(form.lastName, 'last')
   if (errors.firstName || errors.lastName) {
-    status.value = 'invalid'
+    toast.error('Check the highlighted fields')
     return
   }
-  // The CV is saved on its own as soon as it changes.
-  saveProfile({
-    ...profile,
-    firstName: profile.firstName.trim(),
-    lastName: profile.lastName.trim(),
-    cv: readProfile().cv,
-  })
-  status.value = 'saved'
+
+  saving.value = true
+  try {
+    await saveProfile({ ...form })
+    toast.success('Changes saved')
+  } catch {
+    toast.error('Couldn’t save your changes', { description: 'Please try again.' })
+  } finally {
+    saving.value = false
+  }
 }
 
-function saveCv(cv: CvFile | null) {
-  // TODO: upload the file to /api/v1/documents once the server exists.
-  updateProfile({ cv })
+async function onCvSelect(file: File) {
+  const replacing = Boolean(profile.value?.cv)
+  cvBusy.value = true
+  try {
+    const saved = await uploadCv(file)
+    toast.success(replacing ? 'CV replaced' : 'CV uploaded', {
+      description: saved.cvText ? file.name : 'Saved, but the words could not be read. Use a PDF or DOCX.',
+    })
+  } catch (error) {
+    const message = (error as { statusMessage?: string }).statusMessage
+    toast.error('Couldn’t upload your CV', { description: message || 'Please try again.' })
+  } finally {
+    cvBusy.value = false
+  }
+}
+
+async function onCvRemove() {
+  cvBusy.value = true
+  try {
+    await removeCv()
+    toast.success('CV removed')
+  } catch {
+    toast.error('Couldn’t remove your CV', { description: 'Please try again.' })
+  } finally {
+    cvBusy.value = false
+  }
 }
 </script>

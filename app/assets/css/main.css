@@ -75,8 +75,9 @@
 }
 
 /* Plain CSS needed: global reduced-motion override across all elements. */
+/* The toast countdown is a timer, not decoration, so it keeps its real duration. */
 @media (prefers-reduced-motion: reduce) {
-  *,
+  *:not(.toast-timer),
   *::before,
   *::after {
     animation-duration: 0.01ms !important;

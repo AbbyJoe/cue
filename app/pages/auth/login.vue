@@ -1,9 +1,11 @@
 <template>
-  <form class="space-y-5" @submit.prevent="submit">
+  <form class="space-y-5" novalidate @submit.prevent="submit">
     <header class="mb-8 text-center">
       <h1 class="text-[1.75rem] font-semibold leading-9 tracking-tight">Welcome back</h1>
       <p class="mt-2 text-sm text-ink-soft">Continue your interview preparation.</p>
     </header>
+
+    <SocialAuth intent="login" />
 
     <Field
       id="email"
@@ -31,13 +33,13 @@
       </div>
     </div>
 
-    <Button type="submit" block>
-      Log in
+    <Button type="submit" block :loading="submitting">
+      {{ submitting ? 'Logging in…' : 'Log in' }}
     </Button>
 
     <p class="text-center text-sm text-ink-soft">
       New to Cue?
-      <NuxtLink to="/auth/signup" class="font-medium text-accent hover:text-ink">Create an account</NuxtLink>
+      <NuxtLink :to="{ path: '/auth/signup', query: route.query.next ? { next: route.query.next } : {} }" class="font-medium text-accent hover:text-ink">Create an account</NuxtLink>
     </p>
   </form>
 </template>
@@ -48,16 +50,51 @@ import { isEmail } from '~/utils/validation'
 definePageMeta({ layout: 'auth' })
 useHead({ title: 'Log in' })
 
+const route = useRoute()
+const { signInWithPassword, resendConfirmation } = useAuth()
+const toast = useToast()
+
 const email = ref('')
 const password = ref('')
 const errors = reactive({ email: '', password: '' })
+const submitting = ref(false)
 
-function submit() {
+const next = computed(() => {
+  const value = route.query.next
+  return typeof value === 'string' && value.startsWith('/') && !value.startsWith('//') ? value : '/dashboard'
+})
+
+async function submit() {
   errors.email = isEmail(email.value) ? '' : 'Enter a valid email address.'
   errors.password = password.value ? '' : 'Enter your password.'
-
-  if (!errors.email && !errors.password) {
-    navigateTo('/dashboard')
+  if (errors.email || errors.password) {
+    return
   }
+
+  submitting.value = true
+  const result = await signInWithPassword(email.value, password.value)
+  submitting.value = false
+
+  if (result.status === 'signed-in') {
+    toast.success('Welcome back')
+    await navigateTo(next.value, { replace: true })
+    return
+  }
+  if (result.status === 'error') {
+    // An unconfirmed account can ask for a new link straight from the toast.
+    const action = result.code === 'email_not_confirmed'
+      ? { label: 'Send the link again', onClick: resendLink }
+      : undefined
+    toast.error('Couldn’t log you in', { description: result.message, action })
+  }
+}
+
+async function resendLink() {
+  const result = await resendConfirmation(email.value, next.value)
+  if (result.status === 'error') {
+    toast.error('Couldn’t send the link', { description: result.message })
+    return
+  }
+  toast.success('Confirmation link sent', { description: `Check ${email.value.trim()} and open the link on this device.` })
 }
 </script>
