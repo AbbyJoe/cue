@@ -55,14 +55,15 @@ export const difficulties: SelectOption[] = [
   { label: 'Guided', value: 'guided' },
   { label: 'Standard', value: 'standard' },
   { label: 'Challenging', value: 'challenging' },
+  { label: 'Extreme', value: 'extreme' },
 ]
 
 export const durations: SelectOption[] = [
   { label: '5 minutes', value: '5' },
   { label: '10 minutes', value: '10' },
-  { label: '15 minutes', value: '15' },
-  { label: '20 minutes', value: '20' },
-  { label: '30 minutes', value: '30' },
+  // { label: '15 minutes', value: '15' },
+  // { label: '20 minutes', value: '20' },
+  // { label: '30 minutes', value: '30' },
 ]
 
 export const styles: SelectOption[] = [
@@ -70,6 +71,7 @@ export const styles: SelectOption[] = [
   { label: 'Specialist interviewer', value: 'technical-interviewer' },
   { label: 'Hiring manager', value: 'hiring-manager' },
   { label: 'Challenging interviewer', value: 'challenging' },
+  { label: 'Extreme interviewer', value: 'extreme' },
 ]
 
 export const defaultSetup: InterviewSetup = {
