@@ -1,6 +1,7 @@
 export interface SelectOption {
   label: string
   value: string
+  group?: string
 }
 
 export interface InterviewSetup {
@@ -13,17 +14,25 @@ export interface InterviewSetup {
 }
 
 export const roles: SelectOption[] = [
-  { label: 'Frontend engineering', value: 'frontend' },
-  { label: 'Backend engineering', value: 'backend' },
-  { label: 'Full-stack engineering', value: 'fullstack' },
-  { label: 'Product management', value: 'product-management' },
-  { label: 'Product design', value: 'product-design' },
-  { label: 'Data analytics', value: 'data-analytics' },
-  { label: 'Data science', value: 'data-science' },
-  { label: 'Quality assurance', value: 'quality-assurance' },
-  { label: 'DevOps and cloud', value: 'devops' },
-  { label: 'Cybersecurity', value: 'cybersecurity' },
-  { label: 'Technical project management', value: 'technical-project-management' },
+  { label: 'Frontend engineering', value: 'frontend', group: 'Technology' },
+  { label: 'Backend engineering', value: 'backend', group: 'Technology' },
+  { label: 'Full-stack engineering', value: 'fullstack', group: 'Technology' },
+  { label: 'Product management', value: 'product-management', group: 'Technology' },
+  { label: 'Product design', value: 'product-design', group: 'Technology' },
+  { label: 'Data analytics', value: 'data-analytics', group: 'Technology' },
+  { label: 'Data science', value: 'data-science', group: 'Technology' },
+  { label: 'Quality assurance', value: 'quality-assurance', group: 'Technology' },
+  { label: 'DevOps and cloud', value: 'devops', group: 'Technology' },
+  { label: 'Cybersecurity', value: 'cybersecurity', group: 'Technology' },
+  { label: 'Technical project management', value: 'technical-project-management', group: 'Technology' },
+  { label: 'Consulting', value: 'consulting', group: 'Business' },
+  { label: 'Marketing', value: 'marketing', group: 'Business' },
+  { label: 'Sales', value: 'sales', group: 'Business' },
+  { label: 'Operations', value: 'operations', group: 'Business' },
+  { label: 'Finance', value: 'finance', group: 'Business' },
+  { label: 'Human resources', value: 'human-resources', group: 'Business' },
+  { label: 'Customer success', value: 'customer-success', group: 'Business' },
+  { label: 'General management', value: 'general-management', group: 'Business' },
 ]
 
 export const levels: SelectOption[] = [
@@ -37,7 +46,7 @@ export const levels: SelectOption[] = [
 export const categories: SelectOption[] = [
   { label: 'General and HR', value: 'general' },
   { label: 'Behavioural', value: 'behavioural' },
-  { label: 'Technical', value: 'technical' },
+  { label: 'Role-specific', value: 'technical' },
   { label: 'Leadership', value: 'leadership' },
   { label: 'Mixed', value: 'mixed' },
 ]
@@ -57,7 +66,7 @@ export const durations: SelectOption[] = [
 
 export const styles: SelectOption[] = [
   { label: 'Friendly recruiter', value: 'friendly' },
-  { label: 'Professional technical interviewer', value: 'technical-interviewer' },
+  { label: 'Specialist interviewer', value: 'technical-interviewer' },
   { label: 'Hiring manager', value: 'hiring-manager' },
   { label: 'Challenging interviewer', value: 'challenging' },
 ]
@@ -84,8 +93,13 @@ export function labelFor(group: keyof typeof groups, value: string) {
   return groups[group].find((option) => option.value === value)?.label ?? value
 }
 
+const previousLabels: Record<string, string> = {
+  Technical: 'technical',
+  'Professional technical interviewer': 'technical-interviewer',
+}
+
 export function valueFor(group: keyof typeof groups, label: string) {
-  return groups[group].find((option) => option.label === label)?.value
+  return groups[group].find((option) => option.label === label)?.value ?? previousLabels[label]
 }
 
 export function readSetup(query: Record<string, unknown>): InterviewSetup {

@@ -20,11 +20,16 @@
         <!-- General practice: sessions outside any workspace -->
         <button
           type="button"
-          :class="cardClass(activeId === null)"
-          :aria-pressed="activeId === null"
+          :class="[cardClass(isOpen(null)), 'relative']"
+          :aria-pressed="isOpen(null)"
+          :aria-busy="switchingTo === null"
+          :disabled="switchingTo !== undefined"
           @click="choose(null)"
         >
-          <span class="flex items-start gap-3">
+          <span
+            class="flex items-start gap-3 transition-opacity duration-150"
+            :class="switchingTo === null ? 'opacity-40' : ''"
+          >
             <span
               class="grid h-10 w-10 flex-none place-items-center rounded-xl bg-sunken text-ink-soft"
             >
@@ -37,20 +42,35 @@
               >
             </span>
           </span>
+          <span
+            v-if="switchingTo === null"
+            class="absolute inset-0 grid place-items-center"
+            role="status"
+            aria-label="Opening workspace"
+          >
+            <CueLogo :size="32" animated />
+          </span>
         </button>
 
         <article
           v-for="workspace in workspaces"
           :key="workspace.id"
-          :class="cardClass(activeId === workspace.id)"
+          :class="[cardClass(isOpen(workspace.id)), 'relative']"
         >
-          <!-- Main area: click to make this the active workspace -->
           <button
             type="button"
-            class="flex w-full min-w-0 items-start gap-3 text-left"
-            :aria-pressed="activeId === workspace.id"
+            class="absolute inset-0 rounded-2xl"
+            :aria-label="`Open ${workspace.name}`"
+            :aria-pressed="isOpen(workspace.id)"
+            :aria-busy="switchingTo === workspace.id"
+            :disabled="switchingTo !== undefined"
             @click="choose(workspace.id)"
+          />
+          <div
+            class="pointer-events-none relative z-10 transition-opacity duration-150"
+            :class="switchingTo === workspace.id ? 'opacity-40' : ''"
           >
+          <div class="flex w-full min-w-0 items-start gap-3 text-left">
             <span
               :class="[
                 'grid h-10 w-10 flex-none place-items-center rounded-xl text-[13px] font-semibold text-ink',
@@ -77,7 +97,7 @@
                 >
               </span>
             </span>
-          </button>
+          </div>
 
           <!-- What this workspace has -->
           <div class="mt-3 flex flex-wrap gap-1.5 pl-[3.25rem]">
@@ -94,7 +114,7 @@
 
           <!-- Footer: date and actions. Delete asks once before removing. -->
           <div
-            class="mt-4 flex min-h-8 items-center justify-between gap-3 border-t border-line pt-3"
+            class="relative mt-4 flex min-h-8 items-center justify-between gap-3 border-t border-line pt-3"
           >
             <p
               v-if="removing === workspace.id"
@@ -106,7 +126,7 @@
               Created {{ formatDate(workspace.createdAt) }}
             </p>
 
-            <div v-if="removing === workspace.id" class="flex gap-1.5">
+            <div v-if="removing === workspace.id" class="pointer-events-auto flex gap-1.5">
               <Button
                 type="button"
                 variant="ghost"
@@ -127,7 +147,7 @@
                 Delete
               </Button>
             </div>
-            <div v-else class="flex gap-1">
+            <div v-else class="pointer-events-auto flex gap-1">
               <Button
                 type="button"
                 variant="ghost"
@@ -150,6 +170,15 @@
               </Button>
             </div>
           </div>
+          </div>
+          <span
+            v-if="switchingTo === workspace.id"
+            class="absolute inset-0 z-20 grid place-items-center"
+            role="status"
+            aria-label="Opening workspace"
+          >
+            <CueLogo :size="32" animated />
+          </span>
         </article>
       </div>
 
@@ -164,7 +193,7 @@
           id="workspace-name"
           v-model="form.name"
           label="Name"
-          placeholder="Acme — Senior Frontend"
+          placeholder="Acme — Marketing manager"
           :error="nameError"
         />
         <Select
@@ -261,6 +290,7 @@ const {
 
 const pending = ref(true);
 const busy = ref(false);
+const switchingTo = ref<string | null | undefined>(undefined);
 const loadError = ref("");
 const nameError = ref("");
 const editing = ref<string | null>(null);
@@ -294,6 +324,12 @@ const cvDisplay = computed<ProfileCv | null>(() => {
   return null;
 });
 const defaults = { role: "", level: "", goals: "", jobDescription: "" };
+
+function isOpen(id: string | null) {
+  return switchingTo.value !== undefined
+    ? switchingTo.value === id
+    : activeId.value === id;
+}
 
 function cardClass(selected: boolean) {
   return [
@@ -411,16 +447,16 @@ function edit(workspace: Workspace) {
 }
 
 async function choose(id: string | null) {
-  if (id === activeId.value) {
+  if (id === activeId.value || switchingTo.value !== undefined) {
     return;
   }
-  busy.value = true;
+  switchingTo.value = id;
   try {
     await open(id);
   } catch {
     toast.error("Couldn’t switch workspace");
   } finally {
-    busy.value = false;
+    switchingTo.value = undefined;
   }
 }
 

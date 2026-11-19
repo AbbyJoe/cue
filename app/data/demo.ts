@@ -67,4 +67,17 @@ export const demoScenarios: DemoScenario[] = [
     ],
     tip: 'Great framing. Close with the decision the result supported.',
   },
+  {
+    id: 'marketing',
+    track: 'Marketing',
+    role: 'Marketing manager',
+    question: 'A campaign missed its target. How do you explain that?',
+    answer: 'The ads reached the right people, but the offer was the same as last quarter. I paused the spend, changed the offer, and the next two weeks recovered half the gap.',
+    scores: [
+      { name: 'Relevance', value: 4 },
+      { name: 'Clarity', value: 4 },
+      { name: 'Evidence', value: 3 },
+    ],
+    tip: 'Name the number you were aiming for, then the number you reached.',
+  },
 ]

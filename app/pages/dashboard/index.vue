@@ -169,7 +169,7 @@ const setupChips = computed(() => [
 const modes = [
   { value: 'general', title: 'General & HR', icon: 'MessageQuestion', tint: 'bg-aura-peach', focus: 'Story', description: 'Introductions, motivation, strengths and the questions recruiters always ask.' },
   { value: 'behavioural', title: 'Behavioural', icon: 'People', tint: 'bg-aura-sky', focus: 'Evidence', description: 'Real situations, your decisions, and what changed because of them.' },
-  { value: 'technical', title: 'Technical', icon: 'Code1', tint: 'bg-aura-mint', focus: 'Depth', description: 'Explain concepts, trade-offs and how you would build or debug it.' },
+  { value: 'technical', title: 'Role-specific', icon: 'Briefcase', tint: 'bg-aura-mint', focus: 'Depth', description: 'Explain the work of the role: the concepts, the trade-offs, and how you would handle a real situation.' },
   { value: 'leadership', title: 'Leadership', icon: 'Lamp', tint: 'bg-aura-sun', focus: 'Influence', description: 'Mentoring, direction and raising the quality of other people’s work.' },
 ]
 

@@ -47,7 +47,7 @@
                 id="target-role"
                 v-model="form.targetRole"
                 label="Target role"
-                placeholder="Senior Frontend Engineer"
+                placeholder="Marketing manager"
                 autocomplete="organization-title"
               />
             </div>
@@ -57,7 +57,7 @@
                 id="goals"
                 v-model="form.goals"
                 rows="4"
-                placeholder="Explain technical trade-offs more clearly."
+                placeholder="Explain a trade-off more clearly."
                 class="field"
               />
             </div>

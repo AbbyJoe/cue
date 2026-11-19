@@ -38,16 +38,22 @@
         ref="list"
         role="listbox"
         tabindex="-1"
-        class="absolute inset-x-0 z-50 max-h-64 overflow-y-auto rounded-2xl border border-line bg-surface p-1.5 shadow-menu outline-none"
+        class="absolute inset-x-0 z-50 max-h-80 overflow-y-auto rounded-2xl border border-line bg-surface p-1.5 shadow-menu outline-none"
         :class="openAbove ? 'bottom-[calc(100%+4px)] origin-bottom' : 'top-[calc(100%+4px)] origin-top'"
         :aria-labelledby="`${id}-label`"
         :aria-activedescendant="open ? optionId(active) : undefined"
         @keydown="onListKey"
       >
+        <template v-for="(option, index) in options" :key="option.value">
         <li
-          v-for="(option, index) in options"
+          v-if="option.group && option.group !== options[index - 1]?.group"
+          class="px-2.5 pb-1 pt-2 text-[11px] font-medium text-ink-faint"
+          role="presentation"
+        >
+          {{ option.group }}
+        </li>
+        <li
           :id="optionId(index)"
-          :key="option.value"
           role="option"
           :aria-selected="option.value === modelValue"
           class="flex min-h-9 cursor-pointer items-center justify-between gap-3 rounded-[0.35rem] px-2.5 text-sm"
@@ -62,6 +68,7 @@
           <span class="truncate">{{ option.label }}</span>
           <Icon v-if="option.value === modelValue" name="TickCircle" :size="16" class="shrink-0 text-accent" />
         </li>
+        </template>
       </ul>
     </Transition>
     </div>

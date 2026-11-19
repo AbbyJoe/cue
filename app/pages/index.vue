@@ -152,7 +152,7 @@
           </Transition>
         </div>
 
-        <div class="glass inline-flex gap-1 rounded-full p-1 !shadow-xs" role="tablist" aria-label="Example interviews">
+        <div class="glass flex max-w-full flex-wrap gap-1 rounded-[1.25rem] p-1 !shadow-xs" role="tablist" aria-label="Example interviews">
           <button
             v-for="(scenario, i) in demoScenarios"
             :key="scenario.id"
@@ -233,7 +233,7 @@ import { demoScenarios } from '~/data/demo'
 
 useHead({ title: 'Practise interviews out loud' })
 
-const word = useScramble(['technical round', 'hard follow-up', 'salary talk', 'system design', 'first five minutes'])
+const word = useScramble(['case interview', 'hard follow-up', 'salary talk', 'panel round', 'first five minutes'])
 const demo = useInterviewDemo(demoScenarios)
 const { active: talking, level: micLevel, error: micError, toggle: toggleMic, release: releaseMic } = useMicrophone()
 
@@ -292,19 +292,19 @@ const steps = [
 const tickerRows = [
   [
     { tag: 'Behavioural', q: 'Tell me about a time you disagreed with your manager.' },
-    { tag: 'Technical', q: 'How would you design a rate limiter?' },
+    { tag: 'Consulting', q: 'A client wants the answer before the analysis. What do you do?' },
     { tag: 'HR', q: 'Why are you leaving your current role?' },
-    { tag: 'Leadership', q: 'How do you grow a junior engineer?' },
-    { tag: 'Technical', q: 'Explain the trade-offs of server-side rendering.' },
-    { tag: 'Behavioural', q: 'Describe a project that failed.' },
+    { tag: 'Marketing', q: 'A campaign missed its target. How do you explain that?' },
+    { tag: 'Engineering', q: 'Explain the trade-offs of server-side rendering.' },
+    { tag: 'Sales', q: 'Tell me about a deal you lost and what you changed.' },
   ],
   [
     { tag: 'Product', q: 'How do you prioritise a roadmap with no data?' },
-    { tag: 'Design', q: 'Walk me through a design decision you regret.' },
-    { tag: 'Data', q: 'How would you know if an A/B test is lying?' },
+    { tag: 'Finance', q: 'Walk me through a forecast that turned out wrong.' },
+    { tag: 'Operations', q: 'A process is late every week. Where do you start?' },
     { tag: 'HR', q: 'What are your salary expectations?' },
-    { tag: 'DevOps', q: 'An incident wakes you at 3am. What do you do first?' },
-    { tag: 'Security', q: 'How would you threat-model a login page?' },
+    { tag: 'Customer success', q: 'A long-term customer is about to leave. What do you do?' },
+    { tag: 'Leadership', q: 'How do you grow someone who is new to the team?' },
   ],
 ]
 

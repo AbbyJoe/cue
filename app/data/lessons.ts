@@ -55,15 +55,15 @@ export const lessons: Lesson[] = [
   },
   {
     slug: 'explaining-a-technical-concept',
-    title: 'Explain a technical concept',
-    category: 'Technical',
+    title: 'Explain a concept from your work',
+    category: 'Role-specific',
     summary: 'Make a concept clear without hiding the trade-off.',
-    purpose: 'Show that you understand the idea well enough to explain it to another engineer.',
+    purpose: 'Show that you understand an idea from your field well enough to explain it to a colleague.',
     evaluates: 'Accuracy, depth for your level, and whether you can connect the concept to a real situation.',
     mistakes: [
       'Defining the term and stopping there.',
-      'Naming tools instead of explaining the decision.',
-      'Speaking as if every technique is always the right one.',
+      'Naming tools or frameworks instead of explaining the decision.',
+      'Speaking as if one approach is always the right one.',
     ],
     structure: [
       'Say what the concept is for.',
@@ -71,7 +71,7 @@ export const lessons: Lesson[] = [
       'Give one situation where you would use it.',
       'Name one cost or limit.',
     ],
-    example: 'Lazy loading delays code until a person needs it. In a large Vue app I would split routes so the first page does not download the whole product. That helps the first load. It does not help a page that is already open and slow, so I would measure before choosing it over a render or data problem.',
+    example: 'A customer segment is only useful if it changes what you do. I would name the group, say why their need is different, and say what we would stop offering to everyone else. A segment that does not change the offer is just a label.',
     exercise: 'Pick one concept from your own work. Explain it in four sentences, and make the last sentence a trade-off.',
   },
   {
@@ -96,7 +96,7 @@ export const lessons: Lesson[] = [
   },
   {
     slug: 'mentoring',
-    title: 'Mentoring and technical direction',
+    title: 'Mentoring and direction',
     category: 'Leadership',
     summary: 'Show how you help other people make better decisions.',
     purpose: 'A senior interview is often about influence, not only your own output.',
