@@ -58,6 +58,7 @@ export const difficulties: SelectOption[] = [
 ]
 
 export const durations: SelectOption[] = [
+  { label: '5 minutes', value: '5' },
   { label: '10 minutes', value: '10' },
   { label: '15 minutes', value: '15' },
   { label: '20 minutes', value: '20' },
@@ -76,7 +77,7 @@ export const defaultSetup: InterviewSetup = {
   level: 'senior',
   category: 'technical',
   difficulty: 'standard',
-  duration: '15',
+  duration: '5',
   style: 'technical-interviewer',
 }
 

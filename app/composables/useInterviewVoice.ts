@@ -32,6 +32,7 @@ export function useInterviewVoice(
   const error = ref('')
   const paused = ref(false)
   const lines = ref<TranscriptLine[]>([])
+  const conversationId = ref('')
   let resumeUnmuted = false
 
   let session: VoiceConversation | null = null
@@ -118,6 +119,7 @@ export function useInterviewVoice(
         return
       }
       session = started
+      conversationId.value = started.getId()
       if (status.value !== 'error') {
         status.value = 'connected'
       }
@@ -178,7 +180,7 @@ export function useInterviewVoice(
     void end()
   })
 
-  return { status, mode, muted, paused, level, error, lines, start, end, toggleMute, togglePause }
+  return { status, mode, muted, paused, level, error, lines, conversationId, start, end, toggleMute, togglePause }
 }
 
 function failureMessage(caught: unknown) {

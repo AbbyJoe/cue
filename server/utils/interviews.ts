@@ -2,14 +2,27 @@ import type { InterviewFeedback, TranscriptLine } from '#shared/types/interview'
 import { scoreTranscript } from './xai'
 
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+const minimumCallSeconds = 180
+const skippedCalls = new Set<string>()
 
 interface TranscriptionData {
   conversation_id?: string
   user_id?: string
   transcript?: unknown[]
+  metadata?: { call_duration_secs?: unknown }
   conversation_initiation_client_data?: {
     dynamic_variables?: Record<string, unknown>
   }
+}
+
+/** A call that ends within 3 minutes is not scored or stored. */
+export function callTooShort(seconds: number) {
+  return Number.isFinite(seconds) && seconds <= minimumCallSeconds
+}
+
+/** Remember a short call so a later webhook does not score it. */
+export function skipInterview(conversationId: string) {
+  skippedCalls.add(conversationId)
 }
 
 /** Score one finished conversation and store it. Throws when a retry could still succeed. */
@@ -21,6 +34,30 @@ export async function recordTranscription(data: TranscriptionData | undefined) {
     console.error('[elevenlabs] transcription has no account to attach it to')
     return
   }
+  const duration = Number(data?.metadata?.call_duration_secs)
+  if (skippedCalls.has(conversationId) || callTooShort(duration)) {
+    console.info(`[elevenlabs] ${conversationId} ended within 3 minutes, not saved`)
+    return
+  }
+
+  await storeInterview({
+    userId,
+    conversationId,
+    transcript: lines(data?.transcript),
+    variables,
+  })
+}
+
+/** Score a transcript the candidate already has and store it under their account. */
+export async function storeInterview(input: {
+  userId: string
+  conversationId: string
+  transcript: TranscriptLine[]
+  variables: Record<string, unknown>
+}) {
+  if (skippedCalls.has(input.conversationId)) {
+    return
+  }
 
   const admin = serviceSupabase()
   if (!admin) {
@@ -30,7 +67,7 @@ export async function recordTranscription(data: TranscriptionData | undefined) {
   const existing = await admin
     .from('interviews')
     .select('feedback')
-    .eq('conversation_id', conversationId)
+    .eq('conversation_id', input.conversationId)
     .maybeSingle()
   if (existing.error) {
     console.error('[interviews] lookup failed:', existing.error.code)
@@ -40,21 +77,21 @@ export async function recordTranscription(data: TranscriptionData | undefined) {
     return
   }
 
-  const transcript = lines(data?.transcript)
+  const transcript = input.transcript
   const feedback = transcript.length === 0
     ? { summary: 'The call ended before any answers were recorded.', scores: [], strengths: [], improvements: [] }
-    : await scoreTranscript(asText(transcript), setupContext(variables))
+    : await scoreTranscript(asText(transcript), setupContext(input.variables))
 
-  const workspaceId = await ownedWorkspace(admin, userId, text(variables.workspace_id))
+  const workspaceId = await ownedWorkspace(admin, input.userId, text(input.variables.workspace_id))
   const row = {
-    user_id: userId,
-    conversation_id: conversationId,
-    role: text(variables.role),
-    level: text(variables.level),
-    category: text(variables.category),
-    difficulty: text(variables.difficulty),
-    duration: text(variables.duration),
-    style: text(variables.style),
+    user_id: input.userId,
+    conversation_id: input.conversationId,
+    role: text(input.variables.role),
+    level: text(input.variables.level),
+    category: text(input.variables.category),
+    difficulty: text(input.variables.difficulty),
+    duration: text(input.variables.duration),
+    style: text(input.variables.style),
     transcript,
     feedback,
     workspace_id: workspaceId,

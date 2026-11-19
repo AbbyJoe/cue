@@ -94,12 +94,12 @@
       </section>
       <p v-if="message" class="text-center text-[13px] text-danger">{{ message }}</p>
 
-      <aside v-if="transcriptOpen" class="flex min-h-full flex-col overflow-hidden rounded-[1.25rem] border border-line bg-surface">
-        <div class="border-b border-line px-5 pb-4 pt-[1.1rem]">
+      <aside v-if="transcriptOpen" class="flex h-[clamp(16rem,48vh,26rem)] flex-col self-start overflow-hidden rounded-[1.25rem] border border-line bg-surface">
+        <div class="shrink-0 border-b border-line px-5 pb-4 pt-[1.1rem]">
           <h2 class="text-base font-semibold">Transcript</h2>
           <p class="mt-0.5 text-xs text-ink-faint">Live conversation</p>
         </div>
-        <div class="flex flex-1 flex-col gap-4 overflow-y-auto p-5">
+        <div class="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-5">
           <p v-if="!lines.length" class="text-sm leading-relaxed text-ink-soft">
             Questions and answers will appear here once the interviewer starts.
           </p>
@@ -128,7 +128,7 @@
       <button type="button" :class="round(transcriptOpen)" :aria-pressed="transcriptOpen" title="Transcript" @click="transcriptOpen = !transcriptOpen">
         <Icon name="MessageText" :size="20" />
       </button>
-      <button
+      <!-- <button
         type="button"
         :class="[round(paused), 'disabled:opacity-60']"
         :aria-pressed="paused"
@@ -137,11 +137,12 @@
         @click="togglePause"
       >
         <Icon :name="paused ? 'Play' : 'Pause'" :size="20" />
-      </button>
+      </button> -->
       <button
         type="button"
-        class="grid h-[3.4rem] w-[3.4rem] place-items-center rounded-full border border-danger bg-danger text-white shadow-button transition-colors duration-150 hover:bg-danger-hover"
+        class="grid h-[3.4rem] w-[3.4rem] place-items-center rounded-full border border-danger bg-danger text-white shadow-button transition-colors duration-150 hover:bg-danger-hover disabled:opacity-60"
         title="End interview"
+        :disabled="saving"
         @click="leave()"
       >
         <Icon name="CallSlash" :size="20" />
@@ -162,7 +163,7 @@ const summary = computed(() => {
   return `${labelFor('role', setup.value.role)} · ${labelFor('level', setup.value.level)} · ${labelFor('category', setup.value.category)}`
 })
 
-const interviewContext = ref({ targetRole: '', goals: '', jobDescription: '' })
+const interviewContext = ref({ targetRole: '', goals: '', jobDescription: '', cv: '', workspaceId: '' })
 const {
   status: sessionStatus,
   mode,
@@ -171,6 +172,7 @@ const {
   level: micLevel,
   error: voiceError,
   lines,
+  conversationId,
   start: startVoice,
   end: endVoice,
   toggleMute,
@@ -191,7 +193,7 @@ const initials = ref('')
 
 // Shared class strings
 const pill = 'inline-flex min-h-8 items-center gap-[0.45rem] rounded-full border border-line bg-surface px-[0.8rem] text-xs font-medium text-ink shadow-xs'
-const tile = 'relative grid min-h-[clamp(16rem,48vh,26rem)] place-items-center overflow-hidden rounded-[1.25rem] border bg-surface text-ink transition-colors duration-200'
+const tile = 'relative grid h-[clamp(16rem,48vh,26rem)] place-items-center overflow-hidden rounded-[1.25rem] border bg-surface text-ink transition-colors duration-200'
 const fade = {
   enterActiveClass: 'transition duration-150',
   leaveActiveClass: 'transition duration-150',
@@ -237,7 +239,14 @@ const orbState = computed(() => {
   return 'idle' as const
 })
 
+const saving = ref(false)
+const toast = useToast()
+const minimumCallSeconds = 180
+
 const status = computed(() => {
+  if (saving.value) {
+    return 'Saving feedback'
+  }
   if (sessionStatus.value === 'connecting') {
     return 'Connecting'
   }
@@ -322,11 +331,57 @@ function startClock() {
 }
 
 async function leave(finished = sessionStatus.value === 'connected' || lines.value.length > 0) {
+  if (saving.value) {
+    return
+  }
   window.clearInterval(ticker)
   ticker = 0
+  const transcript = lines.value.map((line: { from: 'you' | 'interviewer', text: string }) => ({ from: line.from, text: line.text }))
+  const id = conversationId.value
+  const elapsed = Math.max(0, Number(setup.value.duration) * 60 - remaining.value)
+  const tooShort = elapsed <= minimumCallSeconds
+  const knownCall = /^[A-Za-z0-9_-]{8,80}$/.test(id)
+  if (finished && tooShort && knownCall) {
+    await $fetch('/api/v1/interviews', { method: 'POST', body: { conversationId: id, elapsed } }).catch(() => {})
+  }
   await endVoice()
   releaseCamera()
-  await navigateTo(finished ? '/dashboard/history?pending=1' : '/dashboard/practise')
+  if (!finished) {
+    await navigateTo('/dashboard/practise')
+    return
+  }
+  if (tooShort) {
+    toast.info('Keep going past 3 minutes to save feedback.')
+    await navigateTo('/dashboard/history')
+    return
+  }
+  saving.value = true
+  try {
+    const current = setup.value
+    const extra = interviewContext.value
+    await $fetch('/api/v1/interviews', {
+      method: 'POST',
+      body: {
+        conversationId: knownCall ? id : `local-${crypto.randomUUID()}`,
+        elapsed,
+        transcript,
+        role: labelFor('role', current.role),
+        level: labelFor('level', current.level),
+        category: labelFor('category', current.category),
+        difficulty: labelFor('difficulty', current.difficulty),
+        duration: labelFor('duration', current.duration),
+        style: labelFor('style', current.style),
+        targetRole: extra.targetRole,
+        goals: extra.goals,
+        jobDescription: extra.jobDescription,
+        cv: extra.cv,
+        workspaceId: extra.workspaceId,
+      },
+    })
+  } catch {
+    // History still waits for the webhook if this save does not land.
+  }
+  await navigateTo('/dashboard/history?pending=1')
 }
 
 const { load: loadProfile } = useProfile()
