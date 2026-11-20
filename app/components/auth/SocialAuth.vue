@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="grid gap-3 sm:grid-cols-2">
+    <div class="grid gap-3 grid-cols-2">
       <div v-for="provider in providers" :key="provider.id" class="relative">
         <button
           type="button"
@@ -55,8 +55,6 @@ const toast = useToast()
 const route = useRoute()
 const router = useRouter()
 
-// LinkedIn is built but shown as "Coming soon". Set enabled: true (and turn on
-// linkedin_oidc in Supabase) to switch it on.
 const providers: Array<{ id: OAuthProvider, name: string, enabled: boolean }> = [
   { id: 'google', name: 'Google', enabled: true },
   { id: 'linkedin', name: 'LinkedIn', enabled: false },
