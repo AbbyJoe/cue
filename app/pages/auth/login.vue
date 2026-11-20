@@ -76,7 +76,7 @@ async function submit() {
   submitting.value = false
 
   if (result.status === 'signed-in') {
-    toast.success('Welcome back')
+    // toast.success('Welcome back')
     await navigateTo(next.value, { replace: true })
     return
   }
