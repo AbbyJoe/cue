@@ -17,9 +17,9 @@ There is no `server/services` folder. The helpers in `server/utils` are the serv
 2. The interview page loads the profile and the open workspace, then `useInterviewVoice` asks `POST /api/v1/interviews/session` for a short-lived voice token.
 3. The browser starts an ElevenLabs call. The agent hears the role, level, job description, CV text, and goals. `user_id` and `workspace_id` go along so the result can be saved. They are not for the agent to say.
 4. The microphone and camera stay in the browser. Nothing is uploaded while you talk.
-5. Ending the call after more than 3 minutes sends the transcript to `POST /api/v1/interviews`.
+5. Ending the call after more than 3 minutes sends the transcript to `POST /api/v1/interviews`, then opens Past interviews immediately. The room does not wait for the score.
 6. `storeInterview` asks xAI to score it and writes one row in `interviews`.
-7. History calls `GET /api/v1/interviews` and shows that row.
+7. History shows the Cue logo while it waits, then lists the new row. If the row never arrives, the page says the interview could not be saved.
 8. ElevenLabs may also POST the transcript to `/api/v1/webhooks/elevenlabs`. If the row is already saved, that second delivery is ignored. A call of 3 minutes or less is not saved.
 
 ## Composables

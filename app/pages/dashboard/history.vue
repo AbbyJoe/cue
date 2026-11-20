@@ -5,8 +5,12 @@
       title="Past interviews"
       :description="active ? `Sessions in ${active.name}, with the transcript and assessment.` : 'Sessions outside a workspace, with the transcript and assessment.'"
     />
-    <p v-if="waiting" class="card mt-8 px-5 py-4 text-sm text-ink-soft">
-      Scoring this interview. It will show up here in a moment.
+    <div v-if="waiting" class="card mt-8 flex items-center gap-4 px-5 py-4">
+      <CueLogo :size="32" animated />
+      <p class="text-sm text-ink-soft">Scoring this interview. It will show up here in a moment.</p>
+    </div>
+    <p v-else-if="scoreMissed" class="card mt-8 px-5 py-4 text-sm text-ink-soft">
+      This interview could not be saved. Practise again when you are ready.
     </p>
     <p v-if="loadError" class="mt-8 text-sm text-danger">
       {{ loadError }}
@@ -117,6 +121,7 @@ useHead({ title: 'History' })
 const { active } = useWorkspaces()
 const route = useRoute()
 const waiting = ref(route.query.pending === '1')
+const scoreMissed = ref(false)
 const { interviews, pending, error: loadError, load } = useInterviews()
 let poll = 0
 
@@ -145,8 +150,8 @@ onMounted(async () => {
   if (!waiting.value) {
     return
   }
-  const recent = interviews.value.some((interview: InterviewRecord) => Date.now() - new Date(interview.createdAt).getTime() < 2 * 60 * 1000)
-  if (recent) {
+  const fresh = interviews.value.some((interview: InterviewRecord) => Date.now() - new Date(interview.createdAt).getTime() < 20 * 1000)
+  if (fresh) {
     waiting.value = false
     return
   }
@@ -155,10 +160,11 @@ onMounted(async () => {
   poll = window.setInterval(async () => {
     tries += 1
     await load(true)
-    const arrived = interviews.value.some((interview: InterviewRecord) => !known.has(interview.id as string))
-    if (arrived || tries >= 12) {
+    const arrived = interviews.value.some((interview: InterviewRecord) => !known.has(interview.id as string) || Date.now() - new Date(interview.createdAt).getTime() < 20 * 1000)
+    if (arrived || tries >= 15) {
       window.clearInterval(poll)
-      waiting.value = !arrived
+      waiting.value = false
+      scoreMissed.value = !arrived
     }
   }, 4000)
 })

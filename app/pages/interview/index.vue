@@ -142,7 +142,7 @@
         type="button"
         class="grid h-[3.4rem] w-[3.4rem] place-items-center rounded-full border border-danger bg-danger text-white shadow-button transition-colors duration-150 hover:bg-danger-hover disabled:opacity-60"
         title="End interview"
-        :disabled="saving"
+        :disabled="leaving"
         @click="leave()"
       >
         <Icon name="CallSlash" :size="20" />
@@ -239,14 +239,11 @@ const orbState = computed(() => {
   return 'idle' as const
 })
 
-const saving = ref(false)
+const leaving = ref(false)
 const toast = useToast()
 const minimumCallSeconds = 180
 
 const status = computed(() => {
-  if (saving.value) {
-    return 'Saving feedback'
-  }
   if (sessionStatus.value === 'connecting') {
     return 'Connecting'
   }
@@ -331,9 +328,10 @@ function startClock() {
 }
 
 async function leave(finished = sessionStatus.value === 'connected' || lines.value.length > 0) {
-  if (saving.value) {
+  if (leaving.value) {
     return
   }
+  leaving.value = true
   window.clearInterval(ticker)
   ticker = 0
   const transcript = lines.value.map((line: { from: 'you' | 'interviewer', text: string }) => ({ from: line.from, text: line.text }))
@@ -342,24 +340,12 @@ async function leave(finished = sessionStatus.value === 'connected' || lines.val
   const tooShort = elapsed <= minimumCallSeconds
   const knownCall = /^[A-Za-z0-9_-]{8,80}$/.test(id)
   if (finished && tooShort && knownCall) {
-    await $fetch('/api/v1/interviews', { method: 'POST', body: { conversationId: id, elapsed } }).catch(() => {})
+    void $fetch('/api/v1/interviews', { method: 'POST', body: { conversationId: id, elapsed } }).catch(() => {})
   }
-  await endVoice()
-  releaseCamera()
-  if (!finished) {
-    await navigateTo('/dashboard/practise')
-    return
-  }
-  if (tooShort) {
-    toast.info('Keep going past 3 minutes to save feedback.')
-    await navigateTo('/dashboard/history')
-    return
-  }
-  saving.value = true
-  try {
+  if (finished && !tooShort) {
     const current = setup.value
     const extra = interviewContext.value
-    await $fetch('/api/v1/interviews', {
+    void $fetch('/api/v1/interviews', {
       method: 'POST',
       body: {
         conversationId: knownCall ? id : `local-${crypto.randomUUID()}`,
@@ -377,9 +363,18 @@ async function leave(finished = sessionStatus.value === 'connected' || lines.val
         cv: extra.cv,
         workspaceId: extra.workspaceId,
       },
-    })
-  } catch {
-    // History still waits for the webhook if this save does not land.
+    }).catch(() => {})
+  }
+  await endVoice()
+  releaseCamera()
+  if (!finished) {
+    await navigateTo('/dashboard/practise')
+    return
+  }
+  if (tooShort) {
+    toast.info('Keep going past 3 minutes to save feedback.')
+    await navigateTo('/dashboard/history')
+    return
   }
   await navigateTo('/dashboard/history?pending=1')
 }
