@@ -58,7 +58,7 @@ export function useAuth() {
       clearProfile()
       clearWorkspaces()
       await navigateTo('/auth/login', { replace: true })
-      toast.info('You’ve been logged out')
+      // toast.info('You’ve been logged out') 
     } finally {
       loggingOut.value = false
     }
