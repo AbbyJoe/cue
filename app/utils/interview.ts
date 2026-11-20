@@ -2,6 +2,7 @@ export interface SelectOption {
   label: string
   value: string
   group?: string
+  disabled?: boolean
 }
 
 export interface InterviewSetup {
@@ -60,10 +61,10 @@ export const difficulties: SelectOption[] = [
 
 export const durations: SelectOption[] = [
   { label: '5 minutes', value: '5' },
-  { label: '10 minutes', value: '10' },
-  // { label: '15 minutes', value: '15' },
-  // { label: '20 minutes', value: '20' },
-  // { label: '30 minutes', value: '30' },
+  { label: '10 minutes', value: '10', disabled: true },
+  { label: '15 minutes', value: '15', disabled: true },
+  { label: '20 minutes', value: '20', disabled: true },
+  { label: '30 minutes', value: '30', disabled: true },
 ]
 
 export const styles: SelectOption[] = [
@@ -111,7 +112,7 @@ export function readSetup(query: Record<string, unknown>): InterviewSetup {
   for (const key of Object.keys(groups) as Array<keyof typeof groups>) {
     const raw = query[key]
     const value = Array.isArray(raw) ? raw[0] : raw
-    if (typeof value === 'string' && groups[key].some((option) => option.value === value)) {
+    if (typeof value === 'string' && groups[key].some((option) => option.value === value && !option.disabled)) {
       setup[key] = value
     }
   }

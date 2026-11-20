@@ -185,7 +185,7 @@ export function useInterviewVoice(
 
 function failureMessage(caught: unknown) {
   if (caught instanceof DOMException && caught.name === 'NotAllowedError') {
-    return 'Microphone access was blocked. Allow it in the browser to practise out loud.'
+    return 'Microphone access was blocked. Allow it in your browser to start practising.'
   }
   if (typeof caught === 'object' && caught && 'statusCode' in caught && caught.statusCode === 503) {
     return 'Voice interviews are not configured yet.'

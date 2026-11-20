@@ -51,7 +51,7 @@
         <h2 class="text-base font-semibold">Practice</h2>
         <p class="mt-2 text-ink-soft">{{ lesson.exercise }}</p>
         <Button to="/dashboard/practise" class="mt-5">
-          Practise out loud
+          Practise this now
         </Button>
       </section>
     </div>

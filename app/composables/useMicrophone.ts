@@ -47,7 +47,7 @@ export function useMicrophone() {
       tick()
     } catch {
       release()
-      error.value = 'Microphone access was blocked. Allow it in the browser to practise out loud.'
+      error.value = 'Microphone access was blocked. Allow it in your browser to start practising.'
     }
   }
 

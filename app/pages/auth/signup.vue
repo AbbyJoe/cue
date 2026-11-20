@@ -97,7 +97,7 @@
 import { isEmail, nameError } from '~/utils/validation'
 
 definePageMeta({ layout: 'auth' })
-useHead({ title: 'Create an account' })
+usePageSeo({ title: 'Create an account', description: 'Create a free Cue account and start rehearsing interviews with an AI coach.' })
 
 const route = useRoute()
 const { signUpWithPassword, resendConfirmation } = useAuth()

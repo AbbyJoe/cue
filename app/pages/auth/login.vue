@@ -48,7 +48,7 @@
 import { isEmail } from '~/utils/validation'
 
 definePageMeta({ layout: 'auth' })
-useHead({ title: 'Log in' })
+usePageSeo({ title: 'Log in', description: 'Log in to Cue to keep practising interviews and review your feedback.' })
 
 const route = useRoute()
 const { signInWithPassword, resendConfirmation } = useAuth()

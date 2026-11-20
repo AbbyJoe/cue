@@ -56,13 +56,16 @@
           :id="optionId(index)"
           role="option"
           :aria-selected="option.value === modelValue"
-          class="flex min-h-9 cursor-pointer items-center justify-between gap-3 rounded-[0.35rem] px-2.5 text-sm"
+          :aria-disabled="option.disabled || undefined"
+          class="flex min-h-9 items-center justify-between gap-3 rounded-[0.35rem] px-2.5 text-sm"
           :class="[
-            index === active ? 'bg-panel' : '',
-            index === active || option.value === modelValue ? 'text-ink' : 'text-ink-soft',
+            option.disabled ? 'cursor-not-allowed text-ink-faint' : 'cursor-pointer',
+            !option.disabled && index === active ? 'bg-panel' : '',
+            !option.disabled && (index === active || option.value === modelValue) ? 'text-ink' : '',
+            !option.disabled && index !== active && option.value !== modelValue ? 'text-ink-soft' : '',
             option.value === modelValue ? 'font-medium' : '',
           ]"
-          @mousemove="active = index"
+          @mousemove="option.disabled ? undefined : active = index"
           @click="choose(index)"
         >
           <span class="truncate">{{ option.label }}</span>
@@ -140,9 +143,10 @@ function toggle() {
 
 function choose(index: number) {
   const option = props.options[index]
-  if (option) {
-    emit('update:modelValue', option.value)
+  if (!option || option.disabled) {
+    return
   }
+  emit('update:modelValue', option.value)
   hide()
 }
 
@@ -166,7 +170,7 @@ function typeahead(key: string) {
   }, 500)
   const start = open.value ? active.value + (typed.length === 1 ? 1 : 0) : 0
   const ordered = [...props.options.slice(start), ...props.options.slice(0, start)]
-  const match = ordered.find((option) => option.label.toLowerCase().startsWith(typed))
+  const match = ordered.find((option) => !option.disabled && option.label.toLowerCase().startsWith(typed))
   if (!match) {
     return
   }

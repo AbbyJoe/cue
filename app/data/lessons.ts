@@ -30,7 +30,7 @@ export const lessons: Lesson[] = [
       'Why those experiences lead to the role you are preparing for.',
     ],
     example: 'I am a frontend engineer who has spent the last four years building Vue applications for banking teams. I usually own a feature from the first design conversation through release, and I have spent a lot of that time making slow pages faster. I am looking for a senior role where I can keep doing that work and help other engineers make those decisions.',
-    exercise: 'Say your answer out loud in under 90 seconds. Then remove any sentence that does not help the interviewer understand the role you want.',
+    exercise: 'Say your answer under 90 seconds. Then remove any sentence that does not help the interviewer understand the role you want.',
   },
   {
     slug: 'a-difficult-situation',

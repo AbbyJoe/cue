@@ -2,7 +2,7 @@
   <section class="mx-auto max-w-6xl">
     <PageHeader
       :title="greeting"
-      description="Your AI interviewer is ready. Practise out loud, then review the evidence in your answers."
+      description="Your AI interviewer is ready. Start a voice interview, then review the evidence in your answers."
     />
 
     <!-- Hero: next session -->

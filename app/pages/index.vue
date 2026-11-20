@@ -212,7 +212,7 @@
         <div class="aurora -z-10 bg-aurora-soft opacity-90" aria-hidden="true" />
         <span class="glass grid h-20 w-20 place-items-center rounded-[1.4rem]"><CueLogo :size="44" animated /></span>
         <h2 class="text-[clamp(1.9rem,4.4vw,3.25rem)] font-semibold leading-[1.1] tracking-[-0.04em]">
-          Your next interview is a conversation.<br><span class="text-accent">Practise it out loud.</span>
+          Your next interview is a conversation.<br><span class="text-accent">Rehearse it first.</span>
         </h2>
         <Button to="/auth/signup" size="lg">
           Get started
@@ -231,7 +231,28 @@
 <script setup lang="ts">
 import { demoScenarios } from '~/data/demo'
 
-useHead({ title: 'Practise interviews out loud' })
+usePageSeo({
+  title: 'Rehearse interviews with an AI coach',
+  description: 'Rehearse interviews with an AI interviewer that listens and follows up, then get evidence-based feedback on every answer. No CV needed to start.',
+})
+
+// Structured data so search engines understand what Cue is.
+const { siteUrl } = useRuntimeConfig().public
+useHead({
+  script: [{
+    type: 'application/ld+json',
+    innerHTML: JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'WebApplication',
+      name: 'Cue',
+      url: siteUrl,
+      image: new URL('/og-image.jpg', siteUrl).href,
+      applicationCategory: 'EducationalApplication',
+      operatingSystem: 'Web',
+      description: 'Voice-first AI interview coach. Practise spoken interviews, get adaptive follow-up questions and evidence-based feedback.',
+    }),
+  }],
+})
 
 const word = useScramble(['case interview', 'hard follow-up', 'salary talk', 'panel round', 'first five minutes'])
 const demo = useInterviewDemo(demoScenarios)
@@ -285,7 +306,7 @@ const assurances = ['No CV needed to start', 'Adaptive follow-ups', 'Evidence-ba
 
 const steps = [
   { icon: 'Briefcase', tint: 'bg-aura-peach', title: 'Pick the room', body: 'Choose your role, level and the kind of interview. Add a CV or job description if you have one.' },
-  { icon: 'Microphone2', tint: 'bg-aura-sky', title: 'Talk it through', body: 'Answer out loud. The interviewer listens and follows up on what you actually said.' },
+  { icon: 'Microphone2', tint: 'bg-aura-sky', title: 'Talk it through', body: 'Speak your answers. The interviewer listens and follows up on what you actually said.' },
   { icon: 'Chart2', tint: 'bg-aura-mint', title: 'Read the evidence', body: 'See scores for structure, depth and evidence, each one tied to quotes from your answer.' },
 ]
 

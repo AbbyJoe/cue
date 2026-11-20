@@ -11,5 +11,8 @@
 </template>
 
 <script setup lang="ts">
+// Signed-in pages are private: keep them out of search results.
+useSeoMeta({ robots: 'noindex, nofollow' })
+
 const navOpen = ref(false)
 </script>

@@ -12,15 +12,15 @@ export default defineNuxtConfig({
   app: {
     head: {
       htmlAttrs: { lang: 'en' },
-      title: 'Cue',
+      // Page titles, descriptions and share tags are set in app.vue and on each page.
       link: [
         { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
+        { rel: 'apple-touch-icon', sizes: '180x180', href: '/apple-touch-icon.png' },
+        { rel: 'manifest', href: '/site.webmanifest' },
       ],
       meta: [
-        {
-          name: 'description',
-          content: 'Practise interviews with AI and get better at showing what you know.',
-        },
+        { name: 'theme-color', content: '#F7F7F8' },
+        { name: 'format-detection', content: 'telephone=no' },
       ],
     },
   },
@@ -34,6 +34,8 @@ export default defineNuxtConfig({
     elevenlabsAgentId: process.env.NUXT_ELEVENLABS_AGENT_ID,
     elevenlabsWebhookSecret: process.env.NUXT_ELEVENLABS_WEBHOOK_SECRET,
     public: {
+      // Full address of the live site, used for share images, canonical links and the sitemap.
+      siteUrl: process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3000',
       supabaseUrl: process.env.NUXT_PUBLIC_SUPABASE_URL,
       supabasePublishableKey: process.env.NUXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
     },

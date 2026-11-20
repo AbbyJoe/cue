@@ -42,7 +42,7 @@
 import { isEmail } from '~/utils/validation'
 
 definePageMeta({ layout: 'auth' })
-useHead({ title: 'Reset password' })
+usePageSeo({ title: 'Reset password', index: false })
 
 const { sendPasswordReset } = useAuth()
 const toast = useToast()

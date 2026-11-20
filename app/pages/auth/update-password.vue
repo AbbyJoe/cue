@@ -32,7 +32,7 @@
 
 <script setup lang="ts">
 definePageMeta({ layout: 'auth' })
-useHead({ title: 'New password' })
+usePageSeo({ title: 'New password', index: false })
 
 const { updatePassword } = useAuth()
 const toast = useToast()

@@ -44,6 +44,7 @@ Copy `.env.example` to `.env`. The two Supabase values are required: the app nee
 
 | Variable | Where it is used |
 | --- | --- |
+| `NUXT_PUBLIC_SITE_URL` | Browser. Full live address, e.g. `https://cue.app`. Used for share previews, canonical links and the sitemap. Defaults to `http://localhost:3000`. |
 | `NUXT_PUBLIC_SUPABASE_URL` | Browser. Supabase project URL. |
 | `NUXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Browser. Supabase publishable key. |
 | `NUXT_SUPABASE_SECRET_KEY` | Server only. Privileged database access. |
@@ -111,6 +112,15 @@ To turn it on, set `enabled: true` for LinkedIn in `app/components/auth/SocialAu
 3. Paste the client ID and secret into Supabase → Authentication → Providers → LinkedIn (OIDC), and turn it on.
 
 Provider secrets live only in Supabase. They never go in `.env` or client code.
+
+## SEO and link previews
+
+- **Defaults** (`app/app.vue`): the title pattern `Page · Cue`, description, canonical URL, Open Graph and Twitter tags, and the share image `public/og-image.jpg` (1200 × 630).
+- **Per page:** `usePageSeo({ title, description })`. Pass `index: false` to keep a page out of search results. The app and interview layouts are always `noindex`.
+- **Search engines:** `/robots.txt` and `/sitemap.xml` are generated from `NUXT_PUBLIC_SITE_URL` (`server/routes/`). The landing page also includes `WebApplication` structured data.
+- **Icons:** `favicon.svg`, `apple-touch-icon.png`, `icon-192.png`, `icon-512.png` and `site.webmanifest` in `public/`.
+
+Set `NUXT_PUBLIC_SITE_URL` in production. Share previews need a full image address, so they won't show without it.
 
 ## Frontend
 
